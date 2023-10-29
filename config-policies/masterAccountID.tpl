@@ -1,0 +1,3 @@
+{
+	"masterAccountID": "${masterAccountID}"
+}

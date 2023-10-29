@@ -84,7 +84,9 @@ locals {
   )
 
   aws_config_vpc_sg_authorized_ports = jsonencode({ for k, v in var.vpc_sg_authorized_ports : k => tostring(v) if v != null })
-
+  aws_config_masterAccountID=templatefile("${path.module}/config-policies/masterAccountID.tpl",{
+    masterAccountID=var.masterAccountID
+  })
 }
 
 
@@ -561,7 +563,7 @@ resource "aws_config_config_rule" "restricted_ssh" {
   depends_on = [aws_config_configuration_recorder.main]
 }
 
-resource "aws_config_config_rule" "access_keys_rotated" {
+resource "aws_config_config_rule" "IAM_PASSWORD_POLICY" {
   count            = var.check_access_keys_rotated ? 1 : 0
   name             = "access-keys-rotated"
   description      = "Checks if the active access keys are rotated within the number of days specified in maxAccessKeyAge. The rule is NON_COMPLIANT if the access keys have not been rotated for more than maxAccessKeyAge number of days."
@@ -992,6 +994,596 @@ resource "aws_config_config_rule" "restricted-common-ports" {
   source {
     owner             = "AWS"
     source_identifier = "RESTRICTED_INCOMING_TRAFFIC"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "account_part_of_organization" {
+  count       = var.check_account_part_of_organization ? 1 : 0
+  name        = "account_part_of_organization"
+  description = "Checks that your account is part of organization."
+  input_parameters = local.aws_masterAccountID
+  source {
+    owner             = "AWS"
+    source_identifier = "ACCOUNT_PART_OF_ORGANIZATIONS"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "alb_http_drop_invalid_header_enabled" {
+  count       = var.check_alb_http_drop_invalid_header_enabled ? 1 : 0
+  name        = "alb_http_drop_invalid_header_enabled"
+  description = " Checks if rule evaluates Application Load Balancers (ALBs) to ensure they are configured to drop http headers. The rule is NON_COMPLIANT if the value of routing.http.drop_invalid_header_fields.enabled is set to false."
+
+  source {
+    owner             = "AWS"
+    source_identifier = "ALB_HTTP_DROP_INVALID_HEADER_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "alb_http_to_https_redirection_check" {
+  count       = var.check_alb_http_to_https_redirection_check ? 1 : 0
+  name        = "alb_http_to_https_redirection_check"
+  description = "Checks whether HTTP to HTTPS redirection is configured on all HTTP listeners of Application Load Balancer. The rule is NON_COMPLIANT if one or more HTTP listeners of Application Load Balancer do not have HTTP to HTTPS redirection configured."
+  source {
+    owner             = "AWS"
+    source_identifier = "ALB_HTTP_TO_HTTPS_REDIRECTION_CHECK"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "api_gw_execution_logging_enabled" {
+  count       = var.check_api_gw_execution_logging_enabled? 1 : 0
+  name        = "api_gw_execution_logging_enabled"
+  description = "Checks that all methods in Amazon API Gateway stage has logging enabled. The rule is NON_COMPLIANT if logging is not enabled. The rule is NON_COMPLIANT if loggingLevel is neither ERROR nor INFO."
+
+  source {
+    owner             = "AWS"
+    source_identifier = "API_GW_EXECUTION_LOGGING_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "api_gw_cache_enabled_and_encrypted" {
+  count       = var.check_api_gw_cache_enabled_and_encrypted ? 1 : 0
+  name        = "api_gw_cache_enabled_and_encrypted"
+  description = "Checks that all methods in Amazon API Gateway stages have caching enabled and encrypted. The rule is NON_COMPLIANT  if any method in an API Gateway stage is not configured for caching or the cache is not encrypted"
+
+  source {
+    owner             = "AWS"
+    source_identifier = "API_GW_CACHE_ENABLED_AND_ENCRYPTED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "autoscaling_group_healthcheck_required" {
+  count       = var.check_autoscaling_group_healthcheck_required? 1 : 0
+  name        = "autoscaling_group_healthcheck_required"
+  description = "  Checks whether your Auto Scaling groups that are associated with a load balancer areusing Elastic Load Balancing  health checks."
+
+  source {
+    owner             = "AWS"
+    source_identifier = "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "cloudformation_stack_notification_check" {
+  count       = var.cloudformation_stack_notification_check? 1 : 0
+  name        = "cloudformation_stack_notification_check"
+  description = "   Checks whether your CloudFormation stacks are sending event notifications to an SNS topic. Optionally checks whether  specified SNS topics are used."
+
+  source {
+    owner             = "AWS"
+    source_identifier = "CLOUDFORMATION_STACK_NOTIFICATION_CHECK"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "cloudfront_default_root_object_configured" {
+  count       = var.check_cloudfront_default_root_object_configured? 1 : 0
+  name        = "cloudfront_default_root_object_configured"
+  description = "    Checks if an Amazon CloudFront distribution is configured to return a specific object that is the default root  object. The rule is NON_COMPLIANT if CloudFront distribution does not have a default root object configured."
+
+  source {
+    owner             = "AWS"
+    source_identifier = "CLOUDFRONT_DEFAULT_ROOT_OBJECT_CONFIGURED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "cloudfront_origin_access_identity_enabled" {
+  count       = var.check_cloudfront_origin_access_identity_enabled? 1 : 0
+  name        = "cloudfront_origin_access_identity_enabled"
+  description = "Checks that Amazon CloudFront distribution with Amazon S3 Origin type has Origin Access Identity (OAI) configured.  This rule is NON_COMPLIANT if the CloudFront distribution is backed by Amazon S3 and any of Amazon S3 Origin type is  not OAI configured."
+  source {
+    owner             = "AWS"
+    source_identifier = " CLOUDFRONT_ORIGIN_ACCESS_IDENTITY_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+
+resource "aws_config_config_rule" "cloudfront_sni_enabled" {
+  count       = var.check_cloudfront_sni_enabled? 1 : 0
+  name        = "cloudfront_sni_enabled"
+  description = "  Checks if Amazon CloudFront distributions are using a custom SSL certificate and are configured to use SNI to serve   HTTPS requests. This rule is NON_COMPLIANT if a custom SSL certificate is associated but the SSL support method is  using a dedicated IP address."
+  source {
+    owner             = "AWS"
+    source_identifier = "CLOUDFRONT_SNI_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+
+
+
+resource "aws_config_config_rule" "cloudfront_viewer_policy_https" {
+  count       = var.check_cloudfront_viewer_policy_https? 1 : 0
+  name        = "cloudfront_viewer_policy_https"
+  description = "     Checks whether your Amazon CloudFront distributions use HTTPS (directly or via a redirection). The rule is  NON_COMPLIANT if the value of ViewerProtocolPolicy is set to allow-all for defaultCacheBehavior or for  cacheBehaviors. This means that the rule is non compliant when viewers can use HTTP or HTTPS."
+  source {
+    owner             = "AWS"
+    source_identifier = "CLOUDFRONT_VIEWER_POLICY_HTTPS"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "cloudfront_origin_failover_enabled" {
+  count       = var.check_cloudfront_origin_failover_enabled? 1 : 0
+  name        = "cloudfront_origin_failover_enabled"
+  description = "Checks whether an origin group is configured for the distribution of at least 2 origins in the origin group for  Amazon CloudFront.  This rule is NON_COMPLIANT if there are no origin groups for the distribution."
+  source {
+    owner             = "AWS"
+    source_identifier = "CLOUDFRONT_ORIGIN_FAILOVER_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "codebuild_project_envvar_awscred_check" {
+  count       = var.check_codebuild_project_envvar_awscred_check? 1 : 0
+  name        = "codebuild_project_envvar_awscred_check"
+  description = "     Checks whether the project contains environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY. The rule is  NON_COMPLIANT when the project environment variables contains plaintext credentials."
+  source {
+    owner             = "AWS"
+    source_identifier = "CODEBUILD_PROJECT_ENVVAR_AWSCRED_CHECK"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "dms_replication_not_public" {
+  count       = var.check_dms_replication_not_public? 1 : 0
+  name        = "dms_replication_not_public"
+  description = "Checks whether AWS Database Migration Service replication instances are public. The rule is NON_COMPLIANT if  PubliclyAccessible field is true."
+  source {
+    owner             = "AWS"
+    source_identifier = "DMS_REPLICATION_NOT_PUBLIC"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "dynamodb_in_backup_plan" {
+  count       = var.check_dynamodb_in_backup_plan? 1 : 0
+  name        = "dynamodb_in_backup_plan"
+  description = "     Checks whether Amazon DynamoDB table is present in AWS Backup plans. The rule is NON_COMPLIANT if DynamoDB tables  are not present in any AWS Backup plan."
+  source {
+    owner             = "AWS"
+    source_identifier = "DYNAMODB_IN_BACKUP_PLAN"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "ec2_ebs_encryption_by_default" {
+  count       = var.check_ec2_ebs_encryption_by_default? 1 : 0
+  name        = "ec2_ebs_encryption_by_default"
+  description = "Check that Amazon Elastic Block Store (EBS) encryption is enabled by default. The rule is NON_COMPLIANT if the  encryption is not enabled."
+  source {
+    owner             = "AWS"
+    source_identifier = "EC2_EBS_ENCRYPTION_BY_DEFAULT"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "ec2_instance_detailed_monitoring_enabled" {
+  count       = var.check_ec2_instance_detailed_monitoring_enabled? 1 : 0
+  name        = "ec2_instance_detailed_monitoring_enabled"
+  description = "     Checks whether detailed monitoring is enabled for EC2 instances. The rule is NON_COMPLIANT if detailed monitoring is  not enabled"
+  source {
+    owner             = "AWS"
+    source_identifier = "EC2_INSTANCE_DETAILED_MONITORING_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "ec2_instance_managed_by_ssm" {
+  count       = var.check_ec2_instance_managed_by_ssm? 1 : 0
+  name        = "ec2_instance_managed_by_ssm"
+  description = "        Checks whether the Amazon EC2 instances in your account are managed by AWS Systems Manager."
+  source {
+    owner             = "AWS"
+    source_identifier = "EC2_INSTANCE_MANAGED_BY_SSM"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "ec2_instance_no_public_ip" {
+  count       = var.check_ec2_instance_no_public_ip? 1 : 0
+  name        = "ec2_instance_no_public_ip"
+  description = "         Checks whether Amazon Elastic Compute Cloud (Amazon EC2) instances have a public IP association. The rule is  NON_COMPLIANT if the publicIp field is present in the Amazon EC2 instance configuration item. This rule applies only   to IPv4."
+  source {
+    owner             = "AWS"
+    source_identifier = "EC2_INSTANCE_NO_PUBLIC_IP"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "eks_secrets_encrypted" {
+  count       = var.check_eks_secrets_encrypted? 1 : 0
+  name        = "eks_secrets_encrypted"
+  description = "Checks whether Amazon Elastic Kubernetes Service clusters are configured to have Kubernetes secrets encrypted using  AWS Key Management Service (KMS) keys. This rule is COMPLIANT if an EKS cluster has an encryptionConfig with secrets  as one of the resources. This rule is also COMPLIANT if the key used to encrypt EKS secrets matches with the  parameter. This rule is NON_COMPLIANT if an EKS cluster does not have an encryptionConfig or if the encryptionConf  resources do not include secrets. This rule is also NON_COMPLIANT if the key used to encrypt EKS secrets does not  match with the parameter."
+  source {
+    owner             = "AWS"
+    source_identifier = "EKS_SECRETS_ENCRYPTED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "ec2_stopped_instance" {
+  count       = var.check_ec2_stopped_instance_enabled? 1 : 0
+  name        = "ec2_stopped_instance"
+  description = "     Checks whether detailed monitoring is enabled for EC2 instances. The rule is NON_COMPLIANT if detailed monitoring is  not enabled"
+  source {
+    owner             = "AWS"
+    source_identifier = "EC2_STOPPED_INSTANCE"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "eks_endpoint_no_public_access" {
+  count       = var.check_eks_endpoint_no_public_access? 1 : 0
+  name        = "eks_endpoint_no_public_access"
+  description = "    Checks whether Amazon Elastic Kubernetes Service (Amazon EKS) endpoint is not publicly accessible. The rule is   NON_COMPLIANT if the endpoint is publicly accessible."
+  source {
+    owner             = "AWS"
+    source_identifier = "EKS_ENDPOINT_NO_PUBLIC_ACCESS"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "elasticache_redis_cluster_automatic_backup_check" {
+  count       = var.check_elasticache_redis_cluster_automatic_backup_check? 1 : 0
+  name        = "elasticache_redis_cluster_automatic_backup_check"
+  description = " Check if the Amazon ElastiCache Redis clusters have automatic backup turned on. The rule is NON_COMPLIANT if the    SnapshotRetentionLimit for Redis cluster is less than the SnapshotRetentionPeriod parameter. For example: If the parameter is 15 then the rule is non-compliant if the snapshotRetentionPeriod is between 0-15."
+  source {
+    owner             = "AWS"
+    source_identifier = "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "elb_acm_certificate_required" {
+  count       = var.check_elb_acm_certificate_required? 1 : 0
+  name        = "elb_acm_certificate_required"
+  description = "       Checks whether the Classic Load Balancers use SSL certificates provided by AWS Certificate Manager. To use this  rule, use an SSL or HTTPS listener with your Classic Load Balancer. This rule is only applicable to Classic Load  Balancers. This rule does not check Application Load Balancers and Network Load Balancers."
+  source {
+    owner             = "AWS"
+    source_identifier = "ELB_ACM_CERTIFICATE_REQUIRED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "emr_master_no_public_ip" {
+  count       = var.check_emr_master_no_public_ip? 1 : 0
+  name        = "emr_master_no_public_ip"
+  description = "         Checks whether Amazon Elastic MapReduce (EMR) clusters' master nodes have public IPs. The rule is NON_COMPLIANT if  the master node has a public IP"
+  source {
+    owner             = "AWS"
+    source_identifier = "EMR_MASTER_NO_PUBLIC_IP"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "root_account_hardware_mfa_enabled" {
+  count       = var.check_root_account_hardware_mfa_enabled? 1 : 0
+  name        = "root_account_hardware_mfa_enabled"
+  description = "       Checks whether your AWS account is enabled to use multi-factor authentication (MFA) hardware device to sign in with   root credentials. The rule is NON_COMPLIANT if any virtual MFA devices are permitted for signing in with root"
+  source {
+    owner             = "AWS"
+    source_identifier = "ROOT_ACCOUNT_HARDWARE_MFA_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+
+resource "aws_config_config_rule" "iam_no_inline_policy_check" {
+  count       = var.check_iam_no_inline_policy_check? 1 : 0
+  name        = "iam_no_inline_policy_check"
+  description = "       Checks that inline policy feature is not in use. The rule is NON_COMPLIANT if an AWS Identity and Access Management   (IAM) user, IAM role or IAM group has any inline policy."
+  source {
+    owner             = "AWS"
+    source_identifier = "IAM_NO_INLINE_POLICY_CHECK"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "iam_user_mfa_enabled" {
+  count       = var.check_iam_user_mfa_enabled? 1 : 0
+  name        = "iam_user_mfa_enabled"
+  description = "Checks whether the AWS Identity and Access Management users have multi-factor authentication (MFA) enabled."
+  source {
+    owner             = "AWS"
+    source_identifier = "IAM_USER_MFA_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+
+resource "aws_config_config_rule" "lambda_function_public_access_prohibited" {
+  count       = var.check_lambda_function_public_access_prohibited? 1 : 0
+  name        = "lambda_function_public_access_prohibited"
+  description = "        Checks whether the AWS Lambda function policy attached to the Lambda resource prohibits public access. If the Lambda function policy allows public access it is NON_COMPLIANT"
+  source {
+    owner             = "AWS"
+    source_identifier = "LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "lambda_inside_vpc" {
+  count       = var.check_lambda_inside_vpc? 1 : 0
+  name        = "lambda_inside_vpc"
+  description = "Checks whether an AWS Lambda function is in an Amazon Virtual Private Cloud. The rule is NON_COMPLIANT if the Lambda function is not in a VPC"
+  source {
+    owner             = "AWS"
+    source_identifier = "LAMBDA_INSIDE_VPC"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "rds_in_backup_plan" {
+  count       = var.check_rds_in_backup_plan? 1 : 0
+  name        = "rds_in_backup_plan"
+  description = "        Checks whether Amazon RDS database is present in back plans of AWS Backup. The rule is NON_COMPLIANT if Amazon RDS   databases are not included in any AWS Backup plan."
+  source {
+    owner             = "AWS"
+    source_identifier = "RDS_IN_BACKUP_PLAN"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "rds_instance_deletion_protection_enabled" {
+  count       = var.check_rds_instance_deletion_protection_enabled? 1 : 0
+  name        = "rds_instance_deletion_protection_enabled"
+  description = " Checks if an Amazon Relational Database Service (Amazon RDS) instance has deletion protection enabled. This rule is NON_COMPLIANT if an Amazon RDS instance does not have deletion protection enabled i.e deletionProtection is set to false."
+
+  source {
+    owner             = "AWS"
+    source_identifier = "RDS_INSTANCE_DELETION_PROTECTION_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "rds_instance_iam_authentication_enabled" {
+  count       = var.check_rds_instance_iam_authentication_enabled? 1 : 0
+  name        = "rds_instance_iam_authentication_enabled"
+  description = "Checks if an Amazon Relational Database Service (Amazon RDS) instance has AWS Identity and Access Management (IAM)   authentication enabled. This rule is NON_COMPLIANT if an Amazon RDS instance does not have AWS IAM authentication   enabled i.e configuration.iAMDatabaseAuthenticationEnabled is set to false."
+  source {
+    owner             = "AWS"
+    source_identifier = "RDS_INSTANCE_IAM_AUTHENTICATION_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "rds_logging_enabled" {
+  count       = var.check_rds_logging_enabled? 1 : 0
+  name        = "rds_logging_enabled"
+  description = "         Checks that respective logs of Amazon Relational Database Service (Amazon RDS) are enabled. The rule is   NON_COMPLIANT if any log types are not enabled."
+  source {
+    owner             = "AWS"
+    source_identifier = "RDS_LOGGING_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "rds_multi_az_support" {
+  count       = var.check_rds_multi_az_support? 1 : 0
+  name        = "rds_multi_az_support"
+  description = "Checks whether high availability is enabled for your RDS DB instances."
+  source {
+    owner             = "AWS"
+    source_identifier = "RDS_MULTI_AZ_SUPPORT"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+
+
+resource "aws_config_config_rule" "redshift_backup_enabled" {
+  count       = var.check_redshift_backup_enabled? 1 : 0
+  name        = "redshift_backup_enabled"
+  description = "      Checks that Amazon Redshift automated snapshots are enabled for clusters. The rule is NON_COMPLIANT if the value for  automatedSnapshotRetentionPeriod is greater than MaxRetentionPeriod or less than MinRetentionPeriod or the value is 0."
+  source {
+    owner             = "AWS"
+    source_identifier = "REDSHIFT_BACKUP_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "redshift_cluster_public_access_check" {
+  count       = var.check_redshift_cluster_public_access_check? 1 : 0
+  name        = "redshift_cluster_public_access_check"
+  description = "          Checks whether Amazon Redshift clusters are not publicly accessible. The rule is NON_COMPLIANT if the   publiclyAccessible field is true in the cluster configuration item"
+  source {
+    owner             = "AWS"
+    source_identifier = "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "redshift_require_tls_ssl" {
+  count       = var.check_redshift_require_tls_ssl? 1 : 0
+  name        = "redshift_require_tls_ssl"
+  description = "       C    Checks whether Amazon Redshift clusters require TLS/SSL encryption to connect to SQL clients. The rule is  NON_COMPLIANT if any Amazon Redshift cluster has parameter require_SSL not set to true."
+  source {
+    owner             = "AWS"
+    source_identifier = "REDSHIFT_REQUIRE_TLS_SSL"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+
+resource "aws_config_config_rule" "vpc_flow_logs_enabled" {
+  count       = var.vpc_flow_logs_enabled? 1 : 0
+  name        = "vpc_flow_logs_enabled"
+  description = "Checks if Amazon Virtual Private Cloud (Amazon VPC) flow logs are found and enabled for all Amazon VPCs. The rule is NON_COMPLIANT if flow logs are not enabled for at least one Amazon VPC."
+  source {
+    owner             = "AWS"
+    source_identifier = "VPC_FLOW_LOGS_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "wafv2_logging_enabled" {
+  count       = var.check_wafv2-logging-enabled? 1 : 0
+  name        = "wafv2-logging-enabled"
+  description = "=Checks if logging is enabled on AWS WAFv2 regional and global web access control lists (web ACLs). The rule is NON_COMPLIANT if the logging is enabled but the logging destination does not match the value of the parameter."
+  source {
+    owner             = "AWS"
+    source_identifier = "WAFV2_LOGGING_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "s3_bucket_versioning_enabled" {
+  count       = var.check_rds_multi_az_support? 1 : 0
+  name        = "s3-bucket-versioning-enabled"
+  description = "       Checks if versioning is enabled for your S3 buckets. Optionally, the rule checks if MFA delete is enabled for your S3 buckets."
+  source {
+    owner             = "AWS"
+    source_identifier = "S3_BUCKET_VERSIONING_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "s3_bucket_replication_enabled" {
+  count       = var.check_s3_bucket_replication_enabled? 1 : 0
+  name        = "s3_bucket_replication_enabled"
+  description = "Checks if S3 buckets have replication rules enabled. The rule is NON_COMPLIANT if an S3 bucket does not have a replication rule or has a replication rule that is not enabled."
+  source {
+    owner             = "AWS"
+    source_identifier = "S3_BUCKET_REPLICATION_ENABLED"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+resource "aws_config_config_rule" "s3_account_level_public_access_blocks" {
+  count       = var.check_s3_account_level_public_access_blocks? 1 : 0
+  name        = "s3_account_level_public_access_blocks"
+  description = "Checks if the required public access block settings are configured from account level. The rule is only NON_COMPLIANT when the fields set below do not match the corresponding fields in the configuration item."
+  source {
+    owner             = "AWS"
+    source_identifier = "S3_ACCOUNT_LEVEL_PUBLIC_ACCESS_BLOCKS"
+  }
+
+  tags = var.tags
+
+  depends_on = [aws_config_configuration_recorder.main]
+}
+
+resource "aws_config_config_rule" "multi_region_cloud_trail_enabled" {
+  count       = var.check_multi_region_cloud_trail_enabled? 1 : 0
+  name        = "multi_region_cloud_trail_enabled"
+  description = "Checks if there is at least one multi-region AWS CloudTrail. The rule is NON_COMPLIANT if the trails do not match input parameters"
+  source {
+    owner             = "AWS"
+    source_identifier = "MULTI_REGION_CLOUD_TRAIL_ENABLED"
   }
 
   tags = var.tags

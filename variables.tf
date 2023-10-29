@@ -56,6 +56,10 @@ variable "acm_days_to_expiration" {
   type        = number
   default     = 14
 }
+variable "masterAccountID" {
+  type        = string
+  description = "description"
+}
 
 variable "password_require_uppercase" {
   description = "Require at least one uppercase character in password."
@@ -562,4 +566,192 @@ variable "check_ebs_optimized_instance" {
   description = "Enable ebs-optimized-instance-check rule"
   type        = bool
   default     = false
+}
+variable "account_part_of_organization" {
+  type        = bool
+  default     = true
+  description = ""
+}
+variable "alb_http_drop_invalid_header_enabled" {
+  type        = bool
+  default     = true
+  description = "description"
+}
+variable "alb_http_to_https_redirection_check"{
+  type=bool
+  default=true
+}
+variable "api_gw_execution_logging_enabled"{
+  type=bool
+  default=true
+}
+variable "api_gw_cache_enabled_and_encrypted"{
+  type=bool
+  default=true
+}
+variable "autoscaling_group_healthcheck_required"{
+  type=bool
+  default=true
+}
+variable "cloudformation_stack_notification_check"{
+  type=bool
+  default=true
+}
+variable "cloudfront_default_root_object_configured"{
+  type=bool
+  default=true
+}
+variable "cloudfront_origin_access_identity_enabled"{
+  type=bool
+  default=true
+}
+variable "dms_replication_not_public"{
+  type=bool
+  default=true
+}
+variable "codebuild_project_envvar_awscred_check"{
+  type=bool
+  default=true
+}
+variable "cloudfront_origin_failover_enabled"{
+  type=bool
+  default=true
+}
+variable "cloudfront_viewer_policy_https"{
+  type=bool
+  default=true
+}
+variable "cloudfront_sni_enabled"{
+  type=bool
+  default=true
+}
+variable "dynamodb_in_backup_plan"{
+  type=bool
+  default=true
+}
+variable "ec2_ebs_encryption_by_default"{
+  type=bool
+  default=true
+}
+
+variable "ec2_instance_managed_by_ssm"{
+  type=bool
+  default=true
+}
+variable "ec2_instance_no_public_ip"{
+  type=bool
+  default=true
+}
+variable "elb_acm_certificate_required"{
+  type=bool
+  default=true
+}
+variable "elasticache_redis_cluster_automatic_backup_check"{
+  type=bool
+  default=true
+}
+variable "eks_endpoint_no_public_access"{
+  type=bool
+  default=true
+}
+variable "ec2_stopped_instance"{
+  type=bool
+  default=true
+}
+variable "eks_secrets_encrypted"{
+  type=bool
+  default=true
+}
+variable "rds_instance_iam_authentication_enabled"{
+  type=bool
+  default=true
+}
+variable "rds_instance_deletion_protection_enabled"{
+  type=bool
+  default=true
+}
+variable "rds_in_backup_plan"{
+  type=bool
+  default=true
+}
+variable "lambda_inside_vpc"{
+  type=bool
+  default=true
+}
+variable "lambda_function_public_access_prohibited"{
+  type=bool
+  default=true
+}
+variable "ec2_instance_detailed_monitoring_enabled"{
+  type=bool
+  default=true
+}
+variable "iam_user_mfa_enabled"{
+  type=bool
+  default=true
+}
+variable "iam_no_inline_policy_check"{
+  type=bool
+  default=true
+}
+variable "root_account_hardware_mfa_enabled"{
+  type=bool
+  default=true
+}
+variable "emr_master_no_public_ip"{
+  type=bool
+  default=true
+}
+variable "rds_logging_enabled"{
+  type=bool
+  default=true
+}
+
+variable "multi_region_cloud_trail_enabled"{
+  type=bool
+  default=true
+}
+variable "s3_bucket_versioning_enabled"{
+  type=bool
+  default=true
+}
+variable "s3_account_level_public_access_blocks"{
+  type=bool
+  default=true
+}
+variable "s3_bucket_replication_enabled"{
+  type=bool
+  default=true
+}
+
+
+variable "wafv2_logging_enabled"{
+  type=bool
+  default=true
+}
+
+variable "vpc_flow_logs_enabled"{
+  type=bool
+  default=true
+}
+
+variable "redshift_require_tls_ssl"{
+  type=bool
+  default=true
+}
+
+variable "redshift_cluster_public_access_check"{
+  type=bool
+  default=true
+}
+
+variable "redshift_backup_enabled"{
+  type=bool
+  default=true
+}
+
+
+variable "rds_multi_az_support"{
+  type=bool
+  default=true
 }
