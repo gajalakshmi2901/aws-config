@@ -1004,7 +1004,7 @@ resource "aws_config_config_rule" "account_part_of_organization" {
   count       = var.check_account_part_of_organization ? 1 : 0
   name        = "account_part_of_organization"
   description = "Checks that your account is part of organization."
-  input_parameters = local.masterAccountID
+  input_parameters = local.aws_config_masterAccountID
   source {
     owner             = "AWS"
     source_identifier = "ACCOUNT_PART_OF_ORGANIZATIONS"
@@ -1512,7 +1512,7 @@ resource "aws_config_config_rule" "redshift_require_tls_ssl" {
 }
 
 resource "aws_config_config_rule" "vpc_flow_logs_enabled" {
-  count       = var.vpc_flow_logs_enabled? 1 : 0
+  count       = var.check_vpc_flow_logs_enabled? 1 : 0
   name        = "vpc_flow_logs_enabled"
   description = "Checks if Amazon Virtual Private Cloud (Amazon VPC) flow logs are found and enabled for all Amazon VPCs. The rule is NON_COMPLIANT if flow logs are not enabled for at least one Amazon VPC."
   source {
