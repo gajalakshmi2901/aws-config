@@ -13,7 +13,7 @@ variable "config_aggregator_name" {
 variable "aggregate_organization" {
   description = "Aggregate compliance data by organization"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "config_role_permissions_boundary" {
