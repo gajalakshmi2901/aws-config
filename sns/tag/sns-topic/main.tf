@@ -1,8 +1,3 @@
-data "aws_partition" "current" {}
-
-#
-# AWS Config Logs Bucket
-#
 
 module "config_logs" {
   source  = "trussworks/logs/aws"

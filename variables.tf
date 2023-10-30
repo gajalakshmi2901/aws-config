@@ -593,7 +593,7 @@ variable "check_autoscaling_group_healthcheck_required"{
   type=bool
   default=true
 }
-variable "check_cloudformation_stack_notification_check"{
+variable "cloudformation_stack_notification_check"{
   type=bool
   default=true
 }
