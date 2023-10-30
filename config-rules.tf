@@ -15,19 +15,19 @@ locals {
     {
       acm_days_to_expiration = var.acm_days_to_expiration
     }
-  )
+  ) 
 
   aws_config_ami_approved_tag = templatefile("${path.module}/config-policies/ami-approved-tag.tpl",
     {
       ami_required_tag_key_value = var.ami_required_tag_key_value
     }
-  )
+  )  
 
   aws_config_cloudwatch_log_group_retention_period = templatefile("${path.module}/config-policies/cloudwatch-log-retention.tpl",
     {
       cw_loggroup_retention_period = var.cw_loggroup_retention_period
     }
-  )
+  ) 
 
   aws_config_dynamodb_arn_encryption_list = templatefile("${path.module}/config-policies/dynamodb_arn_encryption_list.tpl",
     {
