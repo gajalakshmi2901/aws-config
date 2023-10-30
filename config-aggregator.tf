@@ -39,7 +39,7 @@ resource "aws_config_configuration_aggregator" "organization" {
   name       = var.config_aggregator_name
 
   organization_aggregation_source {
-    regions = ["ap-east-1"]
+    regions = ["us-east-1"]
     role_arn    = aws_iam_role.aggregator[0].arn
   }
 }
